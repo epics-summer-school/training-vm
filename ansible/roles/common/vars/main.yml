@@ -1,0 +1,2 @@
+epics_install_path: "/opt/epics"
+opi_install_path: "/opt/opi"
