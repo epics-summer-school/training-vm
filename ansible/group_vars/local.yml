@@ -12,6 +12,7 @@ epics_modules_list:
   - busy
   - sscan
   - calc
+  - pcre
   - stream
   - adcore
   - adsimdetector
