@@ -2,6 +2,8 @@
 - name: Set up training VM
   hosts: local
   gather_subset: min
+  vars:
+    docker_users: epics  
   roles:
     - role: common        #  <- mandatory
       tags: common

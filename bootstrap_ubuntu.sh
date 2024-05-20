@@ -38,12 +38,13 @@ if ! command -v git >/dev/null; then
     packages="git"
 fi
 if ! command -v ansible >/dev/null; then
-    packages="${packages} ansible"
+    packages="${packages} pip"
 fi
 if [ "${packages}" ]; then    
     echo "Installing prerequisites: ${packages}..."
     sudo apt update
     sudo apt install -y ${packages}
+    python3 -m pip install --user ansible
 else
     echo "All prerequisites are installed."
 fi

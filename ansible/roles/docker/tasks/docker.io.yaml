@@ -3,6 +3,7 @@
     name: docker.io
     state: present
   notify: Docker deamon configuration changed
+  become: yes
 
 - name: Install other docker modules
   ansible.builtin.apt:
@@ -10,6 +11,7 @@
     state: present
   loop:
     - docker-compose
+  become: yes
 
 - name: Configuring docker proxy
   tags: docker-proxy

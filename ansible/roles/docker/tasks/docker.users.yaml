@@ -12,6 +12,7 @@
     groups: docker
     append: yes
   with_items: "{{ docker_users }}"
+  become: yes
   
 - name: Create docker client config directories
   ansible.builtin.file:

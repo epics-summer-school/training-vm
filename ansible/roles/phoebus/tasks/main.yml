@@ -5,7 +5,7 @@
     dest: '/opt/phoebus'
     clone: yes
     update: yes
-
+  become: yes
 - name: Add X11 forwarding to ~/.profile
   ansible.builtin.lineinfile:
     path: "{{ lookup('env', 'HOME') }}/.profile"
