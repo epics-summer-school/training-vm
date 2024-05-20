@@ -10,7 +10,7 @@
 # - runs 'git pull --recurse-submodules' on the collection
 # - runs ansible
 
-collection_dir="${1%/}"
+collection_dir="."
 
 if [ "$(id -u)" -eq 0 ]; then
   echo "This script must be run by a regular user (with sudo privileges)."
@@ -23,13 +23,6 @@ elif [ -d "./vm-setup/ansible" ]; then
     collection_dir="."
 else
     echo "Directory not found: ${collection_dir}"
-    exit 1
-fi
-
-bootstrap_dir="${collection_dir}/vm-setup"
-
-if [ ! -d "${bootstrap_dir}/ansible" ]; then
-    echo "update.sh [collection_dir] [ansible-playbook args...]"
     exit 1
 fi
 
@@ -47,15 +40,5 @@ for cmd in git ansible-galaxy ansible-playbook; do
     fi
 done
 
-(
-    cd "${collection_dir}" || exit
-    git checkout --recurse-submodules "${slug}"
-    git pull --recurse-submodules
-)
-
-if [ ! -e "${collection_dir}/vm-setup/ansible/group_vars/local.yml" ]; then
-    ln -s "../../../local.yml" "${collection_dir}/vm-setup/ansible/group_vars/local.yml"
-fi
-
-ansible-galaxy install -r "${bootstrap_dir}/requirements.yml" || true
-ansible-playbook -i "${bootstrap_dir}/ansible/hosts" "${bootstrap_dir}/ansible/playbook.yml" "$@"
+ansible-galaxy install -r "requirements.yml" || true
+ansible-playbook -i "./ansible/hosts" "./ansible/playbook.yml" "$@"
