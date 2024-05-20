@@ -11,8 +11,6 @@
       when: epics_modules
 
     - role: phoebus
-      tags: phoebus
-      when: phoebus
 
     - role: docker
       tags: docker
