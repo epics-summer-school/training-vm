@@ -1,0 +1,29 @@
+---
+- name: Set up training VM
+  hosts: local
+  gather_subset: min
+  roles:
+    - role: catrust
+      tags: catrust
+      when: catrust
+
+    - role: common        #  <- mandatory
+      tags: common
+
+    - role: epics-modules
+      tags: epics_modules
+      when: epics_modules
+
+    - role: epics-tools
+      tags: epics_tools
+      when: epics_tools
+
+    - role: docker
+      tags: docker
+      when: docker
+
+    - role: bluesky
+      tags: bluesky
+      when: bluesky
+
+  environment: "{{ proxy_env }}"

@@ -1,0 +1,12 @@
+---
+# tasks file for docker
+# - name: Install docker
+#   ansible.builtin.import_tasks: docker.io.yaml
+#   tags: docker, docker.io
+  # when: has_docker | default(false)
+- name: Add the user to the docker group
+  ansible.builtin.import_tasks: docker.users.yaml
+  # when: has_docker | default(false)
+- name: Config proxy for docker
+  ansible.builtin.import_tasks: docker.proxy.yaml
+  # when: has_docker | default(false)

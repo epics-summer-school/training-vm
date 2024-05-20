@@ -1,0 +1,33 @@
+- name: Get user info
+  ansible.builtin.getent:
+    database: passwd
+
+- ansible.builtin.debug:
+    msg : "HOme is {{ ansible_facts.getent_passwd[ item ][4] }}"
+  with_items: "{{ docker_users }}"
+
+- name: Add user to docker group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: yes
+  with_items: "{{ docker_users }}"
+  
+- name: Create docker client config directories
+  ansible.builtin.file:
+    path: "{{ ansible_facts.getent_passwd[ item ][4] }}/.docker"
+    state: directory
+    owner: "{{ item }}"
+    group: "{{ ansible_facts.getent_passwd[ item ][2] }}"
+    mode: '0755'
+  with_items: "{{ docker_users }}"
+
+- name: Create config.json file
+  ansible.builtin.template:
+    src: config.json.j2
+    dest: "{{ ansible_facts.getent_passwd[ item ][4] }}/.docker/config.json"
+    owner: "{{ item }}"
+    group: "{{ ansible_facts.getent_passwd[ item ][2] }}"
+    mode: '0644'
+  with_items: "{{ docker_users }}"
+  when: webproxy_url is defined

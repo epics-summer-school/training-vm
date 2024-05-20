@@ -1,0 +1,53 @@
+---
+- name: Clone Phoebus repository
+  ansible.builtin.git:
+    repo: 'https://codebase.helmholtz.cloud/hzb/epics/phoebus-container.git'
+    dest: '/opt/phoebus'
+    clone: yes
+    update: yes
+
+- name: Add X11 forwarding to ~/.profile
+  ansible.builtin.lineinfile:
+    path: "{{ lookup('env', 'HOME') }}/.profile"
+    line: |
+      if [ "$DISPLAY" != "" ]; then
+          xhost +local:docker
+      fi
+    create: yes
+    state: present
+  become: no
+
+- name: Create alias for start_phoebus
+  ansible.builtin.lineinfile:
+    path: "{{ lookup('env', 'HOME') }}/.bashrc"
+    line: 'alias phoebus_start="/opt/phoebus/start.sh"'
+    state: present
+    create: yes
+  become: no
+
+- name: Ensure the folder /opt/phoebus/gui exists 
+  ansible.builtin.file:
+    path: /opt/phoebus/gui
+    state: directory
+    mode: '0777'
+
+- name: Change permissions of /opt/phoebus/gui to make it accessible to everyone
+  ansible.builtin.file:
+    path: /opt/phoebus/gui
+    state: directory
+    mode: '0777'
+    
+- name: Change permissions of /opt/phoebus/gui to make it accessible to everyone
+  ansible.builtin.file:
+    path: /opt/phoebus/gui
+    state: directory
+    mode: '0777'
+
+- name: Display start instructions
+  ansible.builtin.debug:
+    msg: |
+      You can now start your phoebus by typing in a terminal phoebus_start. To populate the screens follow the instructions starting at point 5 here: https://hzb.pages.hzdr.de/beamline-controls-wiki/EPICS/HowTo/deploy_phoebus_screens/#instructions
+
+
+
+

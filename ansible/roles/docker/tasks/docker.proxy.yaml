@@ -1,0 +1,28 @@
+- name: Remove legacy docker proxy configurations
+  tags: docker-remove-legacy
+  ansible.builtin.file:
+    dest: "/etc/docker/{{ item }}"
+    state: absent
+  loop:
+    - daemon.json
+    - README
+  notify: Docker deamon configuration changed
+
+- name: Create directory /etc/systemd/system/docker.service.d
+  ansible.builtin.file:
+    path: /etc/systemd/system/docker.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  notify: Docker deamon configuration changed
+
+- name: Create http-proxy.conf file
+  ansible.builtin.template:
+    src: http-proxy.conf.j2
+    dest: /etc/systemd/system/docker.service.d/http-proxy.conf
+    owner: root
+    group: root
+    mode: '0644'
+  when: webproxy_url is defined
+  notify: Docker deamon configuration changed

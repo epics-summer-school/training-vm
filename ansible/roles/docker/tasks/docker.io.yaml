@@ -1,0 +1,22 @@
+- name: Install docker.io
+  ansible.builtin.apt:
+    name: docker.io
+    state: present
+  notify: Docker deamon configuration changed
+
+- name: Install other docker modules
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - docker-compose
+
+- name: Configuring docker proxy
+  tags: docker-proxy
+  ansible.builtin.import_tasks: docker.proxy.yaml
+  when: webproxy_url is defined
+
+- name: Configuring docker client proxy
+  tags: docker-users
+  ansible.builtin.import_tasks: docker.users.yaml
+  when: docker_users is defined

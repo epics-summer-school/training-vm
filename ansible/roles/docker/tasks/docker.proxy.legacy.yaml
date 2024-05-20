@@ -1,0 +1,32 @@
+# The folloing config is not in use any more
+# but safed for a while for the future reference
+- name: Docker version
+  tags: docker-version
+  block: 
+    - name: Get Docker version
+      ansible.builtin.command: docker --version
+      register: docker_version_output
+      changed_when: false
+      check_mode: no
+
+    - name: Extract Docker version number
+      set_fact:
+        docker_version: "{{ docker_version_output.stdout | regex_replace('Docker version ([0-9]+\\.[0-9]+).*', '\\1') }}"
+      when: docker_version_output.stdout is defined
+    
+    - name: Show version
+      debug:
+        msg: "Docker version is {{docker_version}}"
+        
+- name: Configuring docker proxy
+  tags: docker-proxy
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/docker/{{ item }}"
+    mode: "0644"
+    owner: "root"
+    group: "root"
+  loop:
+    - daemon.json
+    - README
+  notify: Docker deamon configuration changed
