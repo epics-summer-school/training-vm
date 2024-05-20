@@ -20,4 +20,3 @@
       tags: bluesky
       when: bluesky
 
-  environment: "{{ proxy_env }}"

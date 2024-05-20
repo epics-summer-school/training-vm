@@ -30,18 +30,21 @@
     path: /opt/phoebus/gui
     state: directory
     mode: '0777'
+  become: yes
 
 - name: Change permissions of /opt/phoebus/gui to make it accessible to everyone
   ansible.builtin.file:
     path: /opt/phoebus/gui
     state: directory
     mode: '0777'
+  become: yes
     
 - name: Change permissions of /opt/phoebus/gui to make it accessible to everyone
   ansible.builtin.file:
     path: /opt/phoebus/gui
     state: directory
     mode: '0777'
+  become: yes
 
 - name: Display start instructions
   ansible.builtin.debug:

@@ -1,5 +1,4 @@
-# User specific configuration
-
+#User specific configuration
 # List the EPICS modules that will be built in this order (base is mandatory)
 epics_modules_list:
   - base
