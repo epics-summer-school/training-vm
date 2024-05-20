@@ -5,6 +5,8 @@
   vars:
     docker_users: epics  
   roles:
+    - role: sysupdate
+      
     - role: common        #  <- mandatory
       tags: common
 

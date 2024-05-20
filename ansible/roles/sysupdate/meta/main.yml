@@ -1,0 +1,7 @@
+galaxy_info:
+  author: Ruslan Ovsyannikov
+  description: Run updates  and reboot on a host
+  company: Helmholtz-Zentrum Berlin für Materialien und Energie
+
+  license: MIT
+  min_ansible_version: '2.1'
