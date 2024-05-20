@@ -3,10 +3,6 @@
   hosts: local
   gather_subset: min
   roles:
-    - role: catrust
-      tags: catrust
-      when: catrust
-
     - role: common        #  <- mandatory
       tags: common
 
@@ -14,9 +10,9 @@
       tags: epics_modules
       when: epics_modules
 
-    - role: epics-tools
-      tags: epics_tools
-      when: epics_tools
+    - role: phoebus
+      tags: phoebus
+      when: phoebus
 
     - role: docker
       tags: docker
