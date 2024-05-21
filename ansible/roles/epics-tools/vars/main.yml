@@ -1,0 +1,10 @@
+---
+# vars file for epics-tools
+subsystem_name: epics
+container_names: 
+          - alarm-server
+          - kafka
+          - kafka-setup
+          - archappl
+          - zookeeper
+          - redis

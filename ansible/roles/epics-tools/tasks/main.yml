@@ -1,0 +1,110 @@
+---
+# tasks file for epics-tools
+- name: Create epics-tools directory
+  ansible.builtin.file:
+    path: "~/.epics-tools"
+    state: directory
+  become: no
+
+- name: Create docker-compose in the epics-tools
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: ~/.epics-tools/docker-compose.yml
+  become: no
+
+- name: Create epics-tools directory
+  ansible.builtin.file:
+    path: "~/.epics-tools/config/alarm-server-config"
+    state: directory
+  become: no
+
+- name: Create .env in the epics-tools
+  ansible.builtin.template:
+    src: alarm_settings.ini.j2
+    dest: ~/.epics-tools/config/alarm-server-config/settings.ini
+  become: no
+
+- name: Create .env in the epics-tools
+  ansible.builtin.template:
+    src: alarm_example.j2
+    dest: ~/.epics-tools/config/alarm-server-config/example
+  become: no
+
+# Phoebus part
+
+- name: Clone Phoebus repository
+  ansible.builtin.git:
+    repo: 'https://codebase.helmholtz.cloud/hzb/epics/phoebus-container.git'
+    dest: ~/.epics-tools/phoebus
+    clone: yes
+    update: yes
+  become: no
+
+- name: Add X11 forwarding to ~/.profile
+  ansible.builtin.lineinfile:
+    path: "{{ lookup('env', 'HOME') }}/.profile"
+    line: |
+      if [ "$DISPLAY" != "" ]; then
+          xhost +local:docker
+      fi
+    create: yes
+    state: present
+  become: no
+
+- name: Create alias for start_phoebus
+  ansible.builtin.lineinfile:
+    path: "{{ lookup('env', 'HOME') }}/.bashrc"
+    line: 'alias phoebus_start="~/.epics-tools/phoebus/start.sh"'
+    state: present
+    create: yes
+  become: no
+
+- name: Ensure the folder /opt/phoebus/gui exists 
+  ansible.builtin.file:
+    path: ~/.epics-tools/phoebus/gui
+    state: directory
+
+- name: Change permissions of /opt/phoebus/gui to make it accessible to everyone
+  ansible.builtin.file:
+    path: ~/.epics-tools/phoebus/gui
+    state: directory
+    
+- name: Change permissions of /opt/phoebus/gui to make it accessible to everyone
+  ansible.builtin.file:
+    path: ~/.epics-tools/phoebus/gui
+    state: directory
+
+- name: Create settings for the phoebus
+  ansible.builtin.template:
+    src: phoebus_settings.ini.j2
+    dest: ~/.epics-tools/phoebus/settings.ini
+  become: no
+
+- name: Display start instructions
+  ansible.builtin.debug:
+    msg: |
+      You can now start your phoebus by typing in a terminal phoebus_start. To populate the screens follow the instructions starting at point 5 here: https://hzb.pages.hzdr.de/beamline-controls-wiki/EPICS/HowTo/deploy_phoebus_screens/#instructions
+
+- name: Run docker-compose
+  ansible.builtin.command:
+    cmd: "docker-compose up -d"
+    chdir: "~/.epics-tools"
+  become: no
+
+- name: List all running containers
+  docker_container_info:
+    name: "{{ item }}"
+  loop: "{{ container_names }}"
+  register: containers_info
+
+- name: Check status of the containers
+  ansible.builtin.command:
+    cmd: "docker container ls -a"
+  become: no
+
+- name: Bring down all the containers
+  ansible.builtin.command:
+    cmd: "docker-compose down"
+    chdir: "~/.epics-tools"
+  become: no
+

@@ -1,0 +1,125 @@
+version: "3.7"
+services:
+  kafkacat:
+    image: confluentinc/cp-kafkacat
+    container_name: kafkacat
+    command: sleep infinity 
+  kafka: 
+    restart: always
+    container_name: kafka
+    network_mode: host
+    depends_on: 
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 0
+      KAFKA_ZOOKEEPER_CONNECT: localhost:2181
+      KAFKA_LISTENERS: "LISTENER_INTERNAL://0.0.0.0:29092,LISTENER_HOST://0.0.0.0:9093,LISTENER_EXTERNAL://0.0.0.0:29095"
+      KAFKA_ADVERTISED_LISTENERS: "LISTENER_INTERNAL://localhost:29092,LISTENER_HOST://localhost:9093,LISTENER_EXTERNAL://localhost:29095"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_INTERNAL:PLAINTEXT,LISTENER_HOST:PLAINTEXT,LISTENER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_INTERNAL
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 100
+    image: "confluentinc/cp-enterprise-kafka:5.2.1"
+    volumes:
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"
+  kafka-setup:
+    image: confluentinc/cp-kafka:5.1.1
+    container_name: kafka-setup
+    network_mode: host
+    depends_on:
+      - kafka
+    command: "bash -c 'echo Waiting for Kafka to be ready... && \
+                       cub kafka-ready -b localhost:9093 1 20 && \
+                       kafka-topics --create --if-not-exists --zookeeper localhost:2181 --partitions 1 --replication-factor 1 --topic {{ subsystem_name }} && \
+                       kafka-configs --zookeeper localhost:2181 --entity-type topics --alter --entity-name {{ subsystem_name }} \
+                       --add-config cleanup.policy=compact,segment.ms=10000,min.cleanable.dirty.ratio=0.01,min.compaction.lag.ms=1000 && \
+                       kafka-topics --create --if-not-exists --zookeeper localhost:2181 --partitions 1 --replication-factor 1 --topic {{ subsystem_name }}Command && \
+                       kafka-configs --zookeeper localhost:2181 --entity-type topics --alter --entity-name {{ subsystem_name }}Command \
+                       --add-config cleanup.policy=compact,segment.ms=10000,min.cleanable.dirty.ratio=0.01,min.compaction.lag.ms=1000 && \
+                        kafka-topics --create --if-not-exists --zookeeper localhost:2181 --partitions 1 --replication-factor 1 --topic {{ subsystem_name }}Talk && \
+                       kafka-configs --zookeeper localhost:2181 --entity-type topics --alter --entity-name {{ subsystem_name }}Talk \
+                       --add-config cleanup.policy=compact,segment.ms=10000,min.cleanable.dirty.ratio=0.01,min.compaction.lag.ms=1000 \
+                       '"
+    environment:
+      # The following settings are listed here only to satisfy the image's requirements.
+      # We override the image's `command` anyways, hence this container will not start a broker.
+      KAFKA_BROKER_ID: ignored
+      KAFKA_ZOOKEEPER_CONNECT: ignored
+
+  alarm-server:
+    image: registry.hzdr.de/hzb/epics/services/alarm-server-4.7.3:latest
+    restart: always
+    container_name: alarm-server
+    network_mode: host
+    volumes:
+      - "./config/alarm-server-config:/epics/alarm-server/config"
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/etc/timezone:/etc/timezone:ro"
+    environment:
+      ZOO_PORT: 2181
+      KAFKA_PORT: 29095
+    command: -settings alarm-server/config/settings.ini -noshell 
+  
+  zookeeper: 
+    environment: 
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_CONNECTION_TIMEOUT_MS: 300000
+    container_name: zookeeper
+    image: "confluentinc/cp-zookeeper:5.2.1"
+    network_mode: host
+#    ports: 
+#      - "2181:2181"
+
+  ioc:
+    container_name: exampleioc
+    restart: always
+    network_mode: "host"
+    image: registry.hzdr.de/hzb/epics/base/ubuntu_22_04:latest
+    working_dir: /opt/epics/
+    tty: true
+    stdin_open: true
+    command: >
+      bash -c "
+      mkdir -p example &&
+      cd example &&
+      makeBaseApp.pl -u epics -t example example &&
+      makeBaseApp.pl -u epics -i -p example -t example example &&
+      make &&
+      chmod +x iocBoot/iocexample/st.cmd &&
+      cd iocBoot/iocexample/ &&
+      ./st.cmd"
+
+  archappl:
+    container_name: archappl
+    hostname: {{ ansible_hostname }}
+    restart: always
+    image: registry.hzdr.de/hzb/epics/services/archiver-appliance:latest
+    network_mode: host
+    volumes:
+     - ./storage/sts:/storage/sts
+     - ./storage/mts:/storage/mts
+     - ./storage/lts:/storage/lts
+     - ./storage/logs:/storage/logs
+    stdin_open: true
+    tty: true
+    #entrypoint: /bin/bash /opt/archappl/scripts/start.sh
+    environment:
+      ARCHAPPL_ALL_APPS_ON_ONE_JVM: "true"
+      #EPICS_CA_ADDR_LIST: "127.0.0.1"
+      EPICS_CA_AUTO_ADDR_LIST: "yes"
+      ARCHAPPL_PERSISTENCE_LAYER: "org.epics.archiverappliance.config.persistence.RedisPersistence"
+      ARCHAPPL_PERSISTENCE_LAYER_REDISURL: "localhost"
+    depends_on:
+     - redis-db
+
+  redis-db:
+    container_name: redis
+    network_mode: host
+    image: redis
+    volumes:
+      - ./storage/db:/data
+    command: redis-server --appendonly yes
+
