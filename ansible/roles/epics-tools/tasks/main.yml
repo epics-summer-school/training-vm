@@ -38,6 +38,7 @@
     dest: ~/.epics-tools/phoebus
     clone: yes
     update: yes
+    version: develop
   become: no
 
 - name: Add X11 forwarding to ~/.profile
