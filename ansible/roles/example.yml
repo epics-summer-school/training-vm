@@ -1,0 +1,15 @@
+---
+- name: Extract dynamic string from URL
+  hosts: localhost
+  tasks:
+    - name: Define URL string
+      set_fact:
+        url_string: "https://codebase.helmholtz.cloud/hzb/epics/ioc/config/dfasdfgIOCconfig"
+
+    - name: Extract dynamic string
+      set_fact:
+        dynamic_string: "{{ url_string | regex_search('\/([^\/]+)IOC', '\\1') }}"
+
+    - name: Debug dynamic string
+      debug:
+        msg: "Extracted string: {{ dynamic_string }}"

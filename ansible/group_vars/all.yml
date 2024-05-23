@@ -1,6 +1,0 @@
-# Default configuration for the available roles
-epics_modules: true
-epics_tools: true
-docker: true
-bluesky: true
-
