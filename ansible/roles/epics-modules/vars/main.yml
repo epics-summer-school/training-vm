@@ -146,3 +146,10 @@ epics_modules:
     release_var: "PVADRIVER"
     release_sortkey: "10"
     pre_hook: adpvadriver_prep.yml
+    
+  motor:
+    name: "Motor Record"
+    version: "R7-3-1"
+    url: "https://github.com/epics-modules/motor/archive/refs/tags/R7-3-1.tar.gz"
+    release_var: "MOTOR"
+    release_sortkey: "10"
